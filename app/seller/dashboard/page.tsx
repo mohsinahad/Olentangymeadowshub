@@ -27,7 +27,7 @@ export default async function SellerDashboard() {
 
   const category = profile ? getCategoryBySlug(profile.jobType) : null;
   const totalEarned = orders
-    .filter((o) => o.status === "PAID" || o.status === "COMPLETED")
+    .filter((o) => o.status !== "CANCELLED")
     .reduce((sum, o) => sum + o.amount, 0);
 
   return (
@@ -48,9 +48,9 @@ export default async function SellerDashboard() {
             </div>
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-center">
               <p className="text-3xl font-bold text-blue-600">
-                {orders.filter((o) => o.status === "PAID").length}
+                {orders.filter((o) => o.status !== "CANCELLED").length}
               </p>
-              <p className="text-sm text-gray-500 mt-1">Paid Orders</p>
+              <p className="text-sm text-gray-500 mt-1">Active Bookings</p>
             </div>
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-center">
               <p className="text-3xl font-bold text-purple-600">
@@ -96,9 +96,9 @@ export default async function SellerDashboard() {
 
           {/* Orders */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <h2 className="font-semibold text-gray-700 mb-4">Orders</h2>
+            <h2 className="font-semibold text-gray-700 mb-4">Bookings</h2>
             {orders.length === 0 ? (
-              <p className="text-gray-400 text-sm text-center py-6">No orders yet. Your profile is live!</p>
+              <p className="text-gray-400 text-sm text-center py-6">No bookings yet. Your profile is live!</p>
             ) : (
               <div className="space-y-3">
                 {orders.map((order) => (
@@ -109,20 +109,13 @@ export default async function SellerDashboard() {
                     </div>
                     <div className="text-right flex flex-col items-end gap-1">
                       <p className="font-semibold text-gray-800">${order.amount}</p>
-                      {order.paymentMethod === "IN_PERSON" ? (
-                        <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-100 text-amber-700">
-                          Pay in person
-                        </span>
-                      ) : (
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                          order.status === "PAID" ? "bg-green-100 text-green-700" :
-                          order.status === "COMPLETED" ? "bg-blue-100 text-blue-700" :
-                          order.status === "CANCELLED" ? "bg-red-100 text-red-700" :
-                          "bg-yellow-100 text-yellow-700"
-                        }`}>
-                          {order.status}
-                        </span>
-                      )}
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                        order.status === "CANCELLED" ? "bg-red-100 text-red-700" :
+                        order.status === "COMPLETED" ? "bg-blue-100 text-blue-700" :
+                        "bg-amber-100 text-amber-700"
+                      }`}>
+                        {order.status === "PENDING" ? "Pay in person" : order.status.toLowerCase()}
+                      </span>
                     </div>
                   </div>
                 ))}

@@ -30,7 +30,7 @@ export default async function AdminPage() {
       take: 50,
     }),
     prisma.order.findMany({
-      where: { status: "PAID" },
+      where: { status: { not: "CANCELLED" } },
       include: {
         buyer: { select: { name: true } },
         seller: { select: { name: true } },
@@ -39,7 +39,7 @@ export default async function AdminPage() {
       take: 10,
     }),
     prisma.order.aggregate({
-      where: { status: "PAID" },
+      where: { status: { not: "CANCELLED" } },
       _sum: { amount: true },
       _count: true,
     }),
@@ -65,8 +65,8 @@ export default async function AdminPage() {
       {/* Stats Row */}
       <div className="grid sm:grid-cols-4 gap-4 mb-10">
         {[
-          { label: "Total Revenue", value: `$${totalRevenue.toFixed(2)}`, color: "text-green-600", bg: "bg-green-50" },
-          { label: "Paid Orders", value: stats._count, color: "text-blue-600", bg: "bg-blue-50" },
+          { label: "Total Booked", value: `$${totalRevenue.toFixed(2)}`, color: "text-green-600", bg: "bg-green-50" },
+          { label: "Total Bookings", value: stats._count, color: "text-blue-600", bg: "bg-blue-50" },
           { label: "Active Sellers", value: allSellers.length, color: "text-purple-600", bg: "bg-purple-50" },
           { label: "Pending Requests", value: pendingRequests.length, color: "text-yellow-600", bg: "bg-yellow-50" },
         ].map((s) => (
@@ -133,12 +133,12 @@ export default async function AdminPage() {
         )}
       </section>
 
-      {/* Recent Orders */}
+      {/* Recent Bookings */}
       <section>
-        <h2 className="text-lg font-bold text-gray-800 mb-4">Recent Paid Orders</h2>
+        <h2 className="text-lg font-bold text-gray-800 mb-4">Recent Bookings</h2>
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
           {recentOrders.length === 0 ? (
-            <div className="p-8 text-center text-gray-400 text-sm">No paid orders yet</div>
+            <div className="p-8 text-center text-gray-400 text-sm">No bookings yet</div>
           ) : (
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
