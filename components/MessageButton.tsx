@@ -3,7 +3,15 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function MessageButton({ sellerId, sellerName }: { sellerId: string; sellerName: string }) {
+export function MessageButton({
+  sellerId,
+  sellerName,
+  compact,
+}: {
+  sellerId: string;
+  sellerName: string;
+  compact?: boolean;
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -24,6 +32,18 @@ export function MessageButton({ sellerId, sellerName }: { sellerId: string; sell
     } finally {
       setLoading(false);
     }
+  }
+
+  if (compact) {
+    return (
+      <button
+        onClick={handleMessage}
+        disabled={loading}
+        className="text-green-600 hover:text-green-800 text-xs font-medium transition disabled:opacity-50"
+      >
+        {loading ? "Opening…" : "Message"}
+      </button>
+    );
   }
 
   return (

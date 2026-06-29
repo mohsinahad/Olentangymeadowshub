@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { AdminActions } from "@/components/AdminActions";
 import { AdminTabsClient } from "@/components/AdminTabsClient";
+import { MessageButton } from "@/components/MessageButton";
 import Image from "next/image";
 import { getCategoryBySlug } from "@/lib/services";
 
@@ -18,7 +19,9 @@ export default async function AdminPage() {
       orderBy: { createdAt: "asc" },
     }),
     prisma.sellerProfile.findMany({
-      include: { user: { select: { id: true, name: true, email: true, image: true, createdAt: true } } },
+      include: {
+        user: { select: { id: true, name: true, email: true, image: true, createdAt: true } },
+      },
       orderBy: { totalEarned: "desc" },
     }),
     prisma.user.findMany({
@@ -28,11 +31,18 @@ export default async function AdminPage() {
     }),
     prisma.order.findMany({
       where: { status: "PAID" },
-      include: { buyer: { select: { name: true } }, seller: { select: { name: true } } },
+      include: {
+        buyer: { select: { name: true } },
+        seller: { select: { name: true } },
+      },
       orderBy: { createdAt: "desc" },
       take: 10,
     }),
-    prisma.order.aggregate({ where: { status: "PAID" }, _sum: { amount: true }, _count: true }),
+    prisma.order.aggregate({
+      where: { status: "PAID" },
+      _sum: { amount: true },
+      _count: true,
+    }),
     prisma.report.findMany({
       orderBy: { createdAt: "desc" },
       include: {
@@ -42,7 +52,9 @@ export default async function AdminPage() {
     }),
     prisma.jobSuggestion.findMany({
       orderBy: { createdAt: "desc" },
-      include: { user: { select: { name: true, email: true } } },
+      include: {
+        user: { select: { name: true, email: true } },
+      },
     }),
   ]);
 
@@ -50,6 +62,7 @@ export default async function AdminPage() {
 
   const overviewTab = (
     <div>
+      {/* Stats Row */}
       <div className="grid sm:grid-cols-4 gap-4 mb-10">
         {[
           { label: "Total Revenue", value: `$${totalRevenue.toFixed(2)}`, color: "text-green-600", bg: "bg-green-50" },
@@ -64,15 +77,21 @@ export default async function AdminPage() {
         ))}
       </div>
 
+      {/* Pending Requests */}
       <section className="mb-10">
         <h2 className="text-lg font-bold text-gray-800 mb-4">
           Pending Seller Requests
           {pendingRequests.length > 0 && (
-            <span className="ml-2 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-0.5 rounded-full">{pendingRequests.length}</span>
+            <span className="ml-2 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-0.5 rounded-full">
+              {pendingRequests.length}
+            </span>
           )}
         </h2>
+
         {pendingRequests.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center text-gray-400 text-sm">No pending requests</div>
+          <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center text-gray-400 text-sm">
+            No pending requests
+          </div>
         ) : (
           <div className="space-y-4">
             {pendingRequests.map((req) => {
@@ -83,7 +102,9 @@ export default async function AdminPage() {
                     {req.user.image ? (
                       <Image src={req.user.image} alt={req.fullName} width={48} height={48} className="rounded-full flex-shrink-0" />
                     ) : (
-                      <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold flex-shrink-0">{req.fullName[0]}</div>
+                      <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold flex-shrink-0">
+                        {req.fullName[0]}
+                      </div>
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -97,7 +118,9 @@ export default async function AdminPage() {
                             {" · "}{req.duration}
                           </p>
                           {req.bio && <p className="text-sm text-gray-500 mt-1 italic">&ldquo;{req.bio}&rdquo;</p>}
-                          <p className="text-xs text-gray-400 mt-1">Submitted {new Date(req.createdAt).toLocaleDateString()}</p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            Submitted {new Date(req.createdAt).toLocaleDateString()}
+                          </p>
                         </div>
                         <AdminActions requestId={req.id} />
                       </div>
@@ -110,6 +133,7 @@ export default async function AdminPage() {
         )}
       </section>
 
+      {/* Recent Orders */}
       <section>
         <h2 className="text-lg font-bold text-gray-800 mb-4">Recent Paid Orders</h2>
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
@@ -174,7 +198,9 @@ export default async function AdminPage() {
                         {s.user.image ? (
                           <Image src={s.user.image} alt={s.fullName} width={32} height={32} className="rounded-full" />
                         ) : (
-                          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-xs font-bold text-green-700">{s.fullName[0]}</div>
+                          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-xs font-bold text-green-700">
+                            {s.fullName[0]}
+                          </div>
                         )}
                         <div>
                           <p className="font-medium text-gray-800">{s.fullName}</p>
@@ -185,7 +211,9 @@ export default async function AdminPage() {
                     <td className="px-6 py-4 text-gray-600">{cat?.icon} {cat?.label ?? s.jobType}</td>
                     <td className="px-6 py-4 text-gray-600">${s.price} {s.priceUnit}</td>
                     <td className="px-6 py-4 text-right font-semibold text-green-700">${s.totalEarned.toFixed(2)}</td>
-                    <td className="px-6 py-4"><AdminActions userId={s.user.id} /></td>
+                    <td className="px-6 py-4">
+                      <AdminActions userId={s.user.id} />
+                    </td>
                   </tr>
                 );
               })}
@@ -198,7 +226,7 @@ export default async function AdminPage() {
 
   const usersTab = (
     <div>
-      <h2 className="text-lg font-bold text-gray-800 mb-4">Users — sorted by last sign-in</h2>
+      <h2 className="text-lg font-bold text-gray-800 mb-4">Users &mdash; sorted by last sign-in</h2>
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
@@ -220,13 +248,20 @@ export default async function AdminPage() {
                 <td className="px-6 py-4">
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                     u.role === "SELLER" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
-                  }`}>{u.role}</span>
+                  }`}>
+                    {u.role}
+                  </span>
                 </td>
                 <td className="px-6 py-4 text-gray-500">{new Date(u.createdAt).toLocaleDateString()}</td>
                 <td className="px-6 py-4 text-gray-500">
                   {u.lastSignedIn ? new Date(u.lastSignedIn).toLocaleString() : <span className="text-gray-300">Never</span>}
                 </td>
-                <td className="px-6 py-4"><AdminActions userId={u.id} /></td>
+                <td className="px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    <MessageButton sellerId={u.id} sellerName={u.name ?? u.email ?? "User"} compact />
+                    <AdminActions userId={u.id} />
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -245,8 +280,11 @@ export default async function AdminPage() {
           </span>
         )}
       </h2>
+
       {reports.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center text-gray-400 text-sm">No reports yet</div>
+        <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center text-gray-400 text-sm">
+          No reports yet
+        </div>
       ) : (
         <div className="space-y-3">
           {reports.map((r) => (
@@ -254,7 +292,9 @@ export default async function AdminPage() {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${r.status === "OPEN" ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-500"}`}>{r.status}</span>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${r.status === "OPEN" ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-500"}`}>
+                      {r.status}
+                    </span>
                     <span className="text-xs text-gray-400">{new Date(r.createdAt).toLocaleDateString()}</span>
                   </div>
                   <p className="text-sm text-gray-700">
@@ -285,8 +325,11 @@ export default async function AdminPage() {
           </span>
         )}
       </h2>
+
       {suggestions.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center text-gray-400 text-sm">No suggestions yet</div>
+        <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center text-gray-400 text-sm">
+          No suggestions yet
+        </div>
       ) : (
         <div className="space-y-3">
           {suggestions.map((s) => (
@@ -294,7 +337,9 @@ export default async function AdminPage() {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${s.status === "PENDING" ? "bg-blue-100 text-blue-700" : s.status === "APPROVED" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>{s.status}</span>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${s.status === "PENDING" ? "bg-blue-100 text-blue-700" : s.status === "APPROVED" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                      {s.status}
+                    </span>
                     <span className="text-xs text-gray-400">{new Date(s.createdAt).toLocaleDateString()}</span>
                   </div>
                   <p className="font-semibold text-gray-800">{s.suggestion}</p>
@@ -312,10 +357,10 @@ export default async function AdminPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
       <div className="flex items-center gap-3 mb-10">
-        <span className="text-3xl">👑</span>
+        <span className="text-3xl">&#128081;</span>
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Ahmed&apos;s Admin Dashboard</h1>
-          <p className="text-gray-500 text-sm">Olentangy Meadows — Admin View · {session.user.email}</p>
+          <p className="text-gray-500 text-sm">Olentangy Meadows &mdash; Admin View &middot; {session.user.email}</p>
         </div>
       </div>
 

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCategoryBySlug } from "@/lib/services";
+import { SellerNoteForm } from "@/components/SellerNoteForm";
 
 export default async function SellerDashboard() {
   const session = await getServerSession(authOptions);
@@ -39,6 +40,7 @@ export default async function SellerDashboard() {
         </div>
       ) : (
         <>
+          {/* Stats */}
           <div className="grid sm:grid-cols-3 gap-4 mb-8">
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-center">
               <p className="text-3xl font-bold text-green-600">${totalEarned.toFixed(2)}</p>
@@ -51,17 +53,22 @@ export default async function SellerDashboard() {
               <p className="text-sm text-gray-500 mt-1">Paid Orders</p>
             </div>
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-center">
-              <p className="text-3xl font-bold text-purple-600">{orders.length}</p>
+              <p className="text-3xl font-bold text-purple-600">
+                {orders.length}
+              </p>
               <p className="text-sm text-gray-500 mt-1">Total Orders</p>
             </div>
           </div>
 
+          {/* Profile Summary */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
             <h2 className="font-semibold text-gray-700 mb-4">Your Listing</h2>
             <div className="flex flex-wrap gap-4">
               <div>
                 <p className="text-xs text-gray-400">Service</p>
-                <p className="font-medium text-gray-800">{category?.icon} {category?.label ?? profile.jobType}</p>
+                <p className="font-medium text-gray-800">
+                  {category?.icon} {category?.label ?? profile.jobType}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-gray-400">Price</p>
@@ -76,11 +83,18 @@ export default async function SellerDashboard() {
                 <p className="font-medium text-gray-800">{profile.duration}</p>
               </div>
             </div>
-            <Link href={`/seller/${session.user.id}`} className="inline-block mt-4 text-green-600 text-sm font-medium hover:underline">
-              View public profile →
+            <Link
+              href={`/seller/${session.user.id}`}
+              className="inline-block mt-4 text-green-600 text-sm font-medium hover:underline"
+            >
+              View public profile &rarr;
             </Link>
           </div>
 
+          {/* Notes & Pricing */}
+          <SellerNoteForm initialNote={profile.adminNote} />
+
+          {/* Orders */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h2 className="font-semibold text-gray-700 mb-4">Orders</h2>
             {orders.length === 0 ? (
@@ -96,14 +110,18 @@ export default async function SellerDashboard() {
                     <div className="text-right flex flex-col items-end gap-1">
                       <p className="font-semibold text-gray-800">${order.amount}</p>
                       {order.paymentMethod === "IN_PERSON" ? (
-                        <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-100 text-amber-700">Pay in person</span>
+                        <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-100 text-amber-700">
+                          Pay in person
+                        </span>
                       ) : (
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                           order.status === "PAID" ? "bg-green-100 text-green-700" :
                           order.status === "COMPLETED" ? "bg-blue-100 text-blue-700" :
                           order.status === "CANCELLED" ? "bg-red-100 text-red-700" :
                           "bg-yellow-100 text-yellow-700"
-                        }`}>{order.status}</span>
+                        }`}>
+                          {order.status}
+                        </span>
                       )}
                     </div>
                   </div>

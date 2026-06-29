@@ -14,19 +14,22 @@ export async function PATCH(
 
   const { id } = await params;
   const body = await req.json();
-  const { status, adminNote } = body;
+  const { status } = body;
 
-  if (!["APPROVED", "REJECTED"].includes(status)) {
+  if (!["|APPROVED", "REJECTED"].includes(status)) {
     return NextResponse.json({ error: "Invalid status" }, { status: 400 });
   }
 
   const request = await prisma.sellerRequest.update({
     where: { id },
-    data: { status, adminNote, reviewedAt: new Date() },
+    data: { status, reviewedAt: new Date() },
   });
 
   if (status === "APPROVED") {
-    await prisma.user.update({ where: { id: request.userId }, data: { role: "SELLER" } });
+    await prisma.user.update({
+      where: { id: request.userId },
+      data: { role: "SELLER" },
+    });
 
     await prisma.sellerProfile.upsert({
       where: { userId: request.userId },
@@ -39,7 +42,6 @@ export async function PATCH(
         availability: request.availability,
         duration: request.duration,
         bio: request.bio,
-        adminNote: adminNote || null,
       },
       update: {
         fullName: request.fullName,
@@ -49,7 +51,6 @@ export async function PATCH(
         availability: request.availability,
         duration: request.duration,
         bio: request.bio,
-        adminNote: adminNote || null,
       },
     });
   }

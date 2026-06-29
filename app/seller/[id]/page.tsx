@@ -19,7 +19,9 @@ export default async function SellerProfilePage({
 
   const user = await prisma.user.findUnique({
     where: { id },
-    include: { sellerProfile: true },
+    include: {
+      sellerProfile: true,
+    },
   });
 
   if (!user || !user.sellerProfile) notFound();
@@ -34,14 +36,21 @@ export default async function SellerProfilePage({
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
       <Link href={`/services/${profile.jobType}`} className="text-green-600 hover:text-green-800 text-sm mb-8 inline-flex items-center gap-1">
-        ← Back to {category?.label ?? profile.jobType}
+        &larr; Back to {category?.label ?? profile.jobType}
       </Link>
 
       <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+        {/* Header */}
         <div className="bg-gradient-to-r from-green-600 to-green-500 p-8 text-white">
           <div className="flex items-center gap-5">
             {user.image ? (
-              <Image src={user.image} alt={profile.fullName} width={80} height={80} className="rounded-full border-4 border-white/50" />
+              <Image
+                src={user.image}
+                alt={profile.fullName}
+                width={80}
+                height={80}
+                className="rounded-full border-4 border-white/50"
+              />
             ) : (
               <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center text-3xl font-bold">
                 {profile.fullName[0]}
@@ -58,6 +67,7 @@ export default async function SellerProfilePage({
           </div>
         </div>
 
+        {/* Details */}
         <div className="p-8">
           {profile.bio && (
             <div className="mb-6">
@@ -68,7 +78,7 @@ export default async function SellerProfilePage({
 
           {profile.adminNote && (
             <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-4">
-              <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Admin Notes</p>
+              <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">From the Seller</p>
               <p className="text-sm text-amber-900 leading-relaxed">{profile.adminNote}</p>
             </div>
           )}
@@ -91,20 +101,30 @@ export default async function SellerProfilePage({
           {!session ? (
             <div className="text-center py-4">
               <p className="text-gray-500 mb-3">Sign in to message or book this service</p>
-              <Link href="/auth/signin" className="inline-block bg-green-600 text-white font-semibold px-6 py-3 rounded-full hover:bg-green-700 transition">
+              <Link
+                href="/auth/signin"
+                className="inline-block bg-green-600 text-white font-semibold px-6 py-3 rounded-full hover:bg-green-700 transition"
+              >
                 Sign In
               </Link>
             </div>
           ) : session.user.id === id ? (
             <div className="text-center py-4 bg-gray-50 rounded-2xl">
               <p className="text-gray-500 text-sm">This is your seller profile.</p>
-              <Link href="/seller/dashboard" className="text-green-600 text-sm font-medium hover:underline">Go to dashboard →</Link>
+              <Link href="/seller/dashboard" className="text-green-600 text-sm font-medium hover:underline">
+                Go to dashboard &rarr;
+              </Link>
             </div>
           ) : (
             <>
               <div className="flex flex-col sm:flex-row gap-3">
                 <MessageButton sellerId={id} sellerName={profile.fullName} />
-                <BookButton sellerId={id} serviceType={profile.jobType} amount={profile.price} sellerName={profile.fullName} />
+                <BookButton
+                  sellerId={id}
+                  serviceType={profile.jobType}
+                  amount={profile.price}
+                  sellerName={profile.fullName}
+                />
               </div>
               <div className="mt-4 text-right">
                 <ReportButton reportedId={id} reportedName={profile.fullName} />
