@@ -5,13 +5,22 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
-  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const orders = await prisma.order.findMany({
-    where: { OR: [{ buyerId: session.user.id }, { sellerId: session.user.id }] },
+    where: {
+      OR: [{ buyerId: session.user.id }, { sellerId: session.user.id }],
+    },
     include: {
       buyer: { select: { name: true, email: true, image: true } },
-      seller: { select: { name: true, sellerProfile: { select: { fullName: true, jobType: true } } } },
+      seller: {
+        select: {
+          name: true,
+          sellerProfile: { select: { fullName: true, jobType: true } },
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -21,9 +30,11 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-  const { sellerId, serviceType, amount, paymentMethod } = await req.json();
+  const { sellerId, serviceType, amount } = await req.json();
 
   const order = await prisma.order.create({
     data: {
@@ -31,7 +42,7 @@ export async function POST(req: NextRequest) {
       sellerId,
       serviceType,
       amount: parseFloat(amount),
-      paymentMethod: paymentMethod === "IN_PERSON" ? "IN_PERSON" : "STRIPE",
+      paymentMethod: "IN_PERSON",
     },
   });
 

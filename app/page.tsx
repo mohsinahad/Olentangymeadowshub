@@ -73,7 +73,7 @@ export default function Home() {
             {[
               { step: "1", icon: "🔍", title: "Browse", desc: "Pick a service and see all your neighbors who offer it, along with their prices and availability." },
               { step: "2", icon: "💬", title: "Message", desc: "Chat directly with the service provider. Send photos if needed so they can give you an accurate price." },
-              { step: "3", icon: "✅", title: "Book & Pay", desc: "Pay securely through the app with a card, or choose to pay in person — whatever works best for you and your neighbor." },
+              { step: "3", icon: "✅", title: "Book & Pay", desc: "Confirm your booking and pay your neighbor directly in person once the job is done — simple, easy, and right within your community." },
             ].map((item) => (
               <div key={item.step} className="text-center">
                 <div className="w-14 h-14 bg-green-600 text-white rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
