@@ -1,0 +1,185 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  role          Role      @default(BUYER)
+  createdAt     DateTime  @default(now())
+  lastSignedIn  DateTime?
+
+  accounts            Account[]
+  sessions            Session[]
+  sellerProfile       SellerProfile?
+  sellerRequest       SellerRequest?
+  sentMessages        Message[]      @relation("SentMessages")
+  buyerConversations  Conversation[] @relation("BuyerConversations")
+  sellerConversations Conversation[] @relation("SellerConversations")
+  buyerOrders         Order[]        @relation("BuyerOrders")
+  sellerOrders        Order[]        @relation("SellerOrders")
+  reportsMade         Report[]       @relation("ReporterReports")
+  reportsReceived     Report[]       @relation("ReportedReports")
+  jobSuggestions      JobSuggestion[]
+}
+
+enum Role {
+  BUYER
+  SELLER
+  ADMIN
+}
+
+model SellerProfile {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  fullName     String
+  jobType      String
+  price        Float
+  priceUnit    String   @default("per job")
+  availability String
+  duration     String
+  bio          String?
+  adminNote    String?
+  totalEarned  Float    @default(0)
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SellerRequest {
+  id           String        @id @default(cuid())
+  userId       String        @unique
+  fullName     String
+  jobType      String
+  price        Float
+  priceUnit    String        @default("per job")
+  availability String
+  duration     String
+  bio          String?
+  status       RequestStatus @default(PENDING)
+  adminNote    String?
+  createdAt    DateTime      @default(now())
+  reviewedAt   DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Conversation {
+  id        String   @id @default(cuid())
+  buyerId   String
+  sellerId  String
+  createdAt DateTime @default(now())
+
+  buyer    User      @relation("BuyerConversations", fields: [buyerId], references: [id])
+  seller   User      @relation("SellerConversations", fields: [sellerId], references: [id])
+  messages Message[]
+
+  @@unique([buyerId, sellerId])
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String?
+  imageData      String?
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation("SentMessages", fields: [senderId], references: [id])
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  buyerId         String
+  sellerId        String
+  serviceType     String
+  amount          Float
+  status          OrderStatus @default(PENDING)
+  paymentMethod   String      @default("STRIPE")
+  stripeSessionId String?
+  createdAt       DateTime    @default(now())
+  completedAt     DateTime?
+
+  buyer  User @relation("BuyerOrders", fields: [buyerId], references: [id])
+  seller User @relation("SellerOrders", fields: [sellerId], references: [id])
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model Report {
+  id         String   @id @default(cuid())
+  reporterId String
+  reportedId String
+  reason     String
+  note       String?
+  status     String   @default("OPEN")
+  createdAt  DateTime @default(now())
+
+  reporter User @relation("ReporterReports", fields: [reporterId], references: [id])
+  reported User @relation("ReportedReports", fields: [reportedId], references: [id])
+}
+
+model JobSuggestion {
+  id          String   @id @default(cuid())
+  userId      String
+  suggestion  String
+  description String?
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
